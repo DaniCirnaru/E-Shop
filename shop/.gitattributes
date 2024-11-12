@@ -1,17 +1,18 @@
 # Set default behavior to automatically normalize line endings
 * text=auto
 
-# Explicitly define text files we want normalized to LF in the repository
-*.java    text eol=lf
-*.xml     text eol=lf
-*.gitignore text eol=lf
+# Normalize specific files to LF in the repository
+*.xml         text eol=lf
+*.gitignore   text eol=lf
 *.gitattributes text eol=lf
 
-# Define binary files that should be excluded from normalization
-# (Git will not modify these files)
-*.png     binary
-*.jpg     binary
-*.gif     binary
-*.pdf     binary
-*.exe     binary
-*.dll     binary
+# Allow .java files to use core.autocrlf settings
+*.java        text
+
+# Define binary files to exclude from normalization
+*.png         binary
+*.jpg         binary
+*.gif         binary
+*.pdf         binary
+*.exe         binary
+*.dll         binary
