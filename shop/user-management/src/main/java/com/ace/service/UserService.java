@@ -29,20 +29,45 @@ public class UserService {
             throw new EntityAlreadyExistsException("User with email" + userDTO.email() + "already exists");
         }
 
-        Role role = roleRepository.findById(userDTO.roleId())
-                .orElseThrow(() -> new EntityNotFoundException("Entity with ID " + userDTO.roleId() + " not found"));
+        Role role = findRoleById(userDTO);
 
         User user = userMapper.toUser(userDTO, role);
         User savedUser = userRepository.save(user);
         return userMapper.toUserDTO(savedUser);
     }
 
-    public UserDTO getUserById(Long id)
-    {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User with id: " +id + " not found"));
+    public UserDTO getUserById(Long id) {
+        User user = findUserById(id);
 
         return userMapper.toUserDTO(user);
     }
 
+    public UserDTO updateUser(Long id, UserDTO userDTO) {
+        User user = findUserById(id);
+        Role role = findRoleById(userDTO);
+
+        user.setUsername(userDTO.username());
+        user.setEmail(userDTO.email());
+        user.setPassword(userDTO.password());
+        user.setRole(role);
+
+        User updatedUser = userRepository.save(user);
+
+        return userMapper.toUserDTO(updatedUser);
+    }
+
+    public void deleteUser(Long id) {
+        User user = findUserById(id);
+        userRepository.delete(user);
+    }
+
+    private Role findRoleById(UserDTO userDTO) {
+        return roleRepository.findById(userDTO.roleId())
+                .orElseThrow(() -> new EntityNotFoundException("Entity with ID " + userDTO.roleId() + " not found"));
+    }
+
+    private User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User with id: " + id + " not found"));
+    }
 }
