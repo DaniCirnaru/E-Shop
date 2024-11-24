@@ -2,31 +2,36 @@ package com.ace.repository;
 
 import com.ace.entity.Role;
 import com.ace.entity.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 public class UserRepositoryTest {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
+    private final RoleRepository roleRepository;
     private Role testRole;
     private User testUser;
 
+    @Autowired
+    public UserRepositoryTest(UserRepository userRepository, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+    }
+
     @BeforeEach
     public void setUp() {
-
         testUser = new User();
         testRole = new Role();
         testRole.setRoleName("testRole");
@@ -36,34 +41,63 @@ public class UserRepositoryTest {
         testUser.setPassword("password");
         testUser.setEmail("test@email.com");
         testUser.setRole(testRole);
-        userRepository.save(testUser);
     }
 
     @Test
-    void testSaveAndFindById() {
-        User user = new User();
-        user.setUsername("username");
-        user.setEmail("test1@example.com");
-        user.setPassword("password");
-        user.setRole(testRole);
+    public void testSaveUser() {
+        User savedUser = userRepository.save(testUser);
 
-        User savedUser = userRepository.save(user);
+        assertThat(savedUser).isNotNull();
+        assertThat(savedUser.getUsername()).isEqualTo("testUser");
+    }
+
+    @Test
+    public void testFindAll() {
+        User user2 = new User();
+        user2.setUsername("testUser2");
+        user2.setPassword("password2");
+        user2.setEmail("test2@email.com");
+        user2.setRole(testRole);
+
+        userRepository.save(testUser);
+        userRepository.save(user2);
+
+        List<User> foundUserList = userRepository.findAll();
+
+        assertThat(foundUserList).isNotNull();
+        assertThat(foundUserList.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void testFindById() {
+        User savedUser = userRepository.save(testUser);
 
         Optional<User> retrievedUser = userRepository.findById(savedUser.getId());
+
         assertThat(retrievedUser).isPresent();
-        assertThat(retrievedUser.get().getUsername()).isEqualTo("username");
+        assertThat(retrievedUser.get().getId()).isEqualTo(savedUser.getId());
     }
 
     @Test
-    void testFindByEmail() {
-        User foundUser = userRepository.findByEmail("test@email.com")
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: testuser@example.com"));
+    public void testFindByEmail() {
+        User savedUser = userRepository.save(testUser);
 
-        assertThat(foundUser.getEmail()).isEqualTo("test@email.com");
+        Optional<User> retrievedUser = userRepository.findByEmail(savedUser.getEmail());
+
+        assertThat(retrievedUser).isPresent();
+        assertThat(retrievedUser.get().getEmail()).isEqualTo(savedUser.getEmail());
     }
 
-    @AfterEach
-    public void tearDown() {
-        userRepository.delete(testUser);
+    @Test
+    public void testDeleteUser() {
+        User savedUser = userRepository.save(testUser);
+
+        assertThat(userRepository.findById(savedUser.getId())).isPresent();
+
+        userRepository.delete(savedUser);
+        Optional<User> foundUser = userRepository.findById(savedUser.getId());
+
+        assertThat(foundUser).isEmpty();
     }
+
 }

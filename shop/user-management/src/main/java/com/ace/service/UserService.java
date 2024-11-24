@@ -11,6 +11,9 @@ import com.ace.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -42,6 +45,13 @@ public class UserService {
         return userMapper.toUserDTO(user);
     }
 
+    public List<UserDTO> findAll() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(userMapper::toUserDTO)
+                .collect(Collectors.toList());
+    }
+
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User user = findUserById(id);
         Role role = findRoleById(userDTO);
@@ -61,13 +71,12 @@ public class UserService {
         userRepository.delete(user);
     }
 
+
     private Role findRoleById(UserDTO userDTO) {
-        return roleRepository.findById(userDTO.roleId())
-                .orElseThrow(() -> new EntityNotFoundException("Entity with ID " + userDTO.roleId() + " not found"));
+        return roleRepository.findById(userDTO.roleId()).orElseThrow(() -> new EntityNotFoundException("Entity with ID " + userDTO.roleId() + " not found"));
     }
 
     private User findUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User with id: " + id + " not found"));
+        return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User with id: " + id + " not found"));
     }
 }

@@ -29,4 +29,12 @@ public class RoleService {
         Role role = roleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Role with ID " + id + " not found"));
         return roleMapper.toRoleDTO(role);
     }
+
+    public void deleteRoleByID(Long id)
+    {
+        Role role = roleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Role with id: " + id + " not found"));
+
+        roleRepository.delete(role);
+    }
 }
